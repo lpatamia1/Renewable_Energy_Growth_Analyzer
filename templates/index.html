@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Renewable Energy Growth Analyzer</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 20px;
+            background-color: #f8fafc;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        .charts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .chart {
+            background: #fff;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        img {
+            width: 100%;
+            border-radius: 8px;
+        }
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <h1>🌎 Renewable Energy Growth Analyzer</h1>
+    <p style="text-align:center">Analyzing U.S. renewable energy production and consumption trends (1973–2025)</p>
+    
+    <div class="charts">
+        {% for chart in charts %}
+        <div class="chart">
+            <h3>{{ chart.replace('.png','').replace('_',' ').title() }}</h3>
+            <img src="/output/{{ chart }}" alt="{{ chart }}">
+        </div>
+        {% endfor %}
+    </div>
+
+    <footer>
+        <p><strong>Latest Year:</strong> {{ latest_year }}</p>
+        <p><strong>Top Sources:</strong> 
+            {% for src, val in top_sources.items() %}
+                {{ src }}: {{ "%.2f"|format(val) }} Btu{% if not loop.last %}, {% endif %}
+            {% endfor %}
+        </p>
+        <p>Created with Flask, Pandas, Seaborn, and Matplotlib 💡</p>
+    </footer>
+</body>
+</html>
