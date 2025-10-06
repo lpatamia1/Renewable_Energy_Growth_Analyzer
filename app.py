@@ -1,31 +1,28 @@
-from flask import Flask, render_template, send_from_directory
-import os
-import pandas as pd
-
-app = Flask(__name__)
-
 @app.route('/')
 def index():
-    # Load summary data
     summary_path = os.path.join('output', 'energy_long.csv')
     df = pd.read_csv(summary_path)
     latest_year = df['Year'].max()
     top_sources = df[df['Year'] == latest_year].groupby('Source')['Value'].sum().sort_values(ascending=False)
-    
-    return render_template('index.html', 
-                           charts=[
-                               'renewable_trends.png',
-                               'avg_growth_by_source.png',
-                               'energy_mix_pie.png',
-                               'correlation_heatmap.png',
-                               'stacked_renewables.png'
-                           ],
-                           latest_year=latest_year,
-                           top_sources=top_sources.to_dict())
 
-@app.route('/output/<path:filename>')
-def serve_output(filename):
-    return send_from_directory('output', filename)
+    # KPI Metrics
+    total_latest = df[df['Year'] == latest_year]['Value'].sum()
+    prev_year = latest_year - 1
+    total_prev = df[df['Year'] == prev_year]['Value'].sum()
+    growth_rate = ((total_latest - total_prev) / total_prev * 100) if total_prev > 0 else 0
 
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    return render_template(
+        'index.html',
+        charts=[
+            'renewable_trends.png',
+            'avg_growth_by_source.png',
+            'energy_mix_pie.png',
+            'correlation_heatmap.png',
+            'stacked_renewables.png'
+        ],
+        interactive_chart='interactive_trends.html',
+        latest_year=latest_year,
+        top_sources=top_sources.to_dict(),
+        total_latest=total_latest,
+        growth_rate=growth_rate
+    )

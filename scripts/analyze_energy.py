@@ -155,6 +155,23 @@ plt.tight_layout()
 plt.savefig(os.path.join(output_dir, "stacked_renewables.png"))
 plt.close()
 
+# --- (f) Interactive Line Chart using Plotly ---
+import plotly.express as px
+
+fig = px.line(
+    df_long,
+    x="Year",
+    y="Value",
+    color="Source",
+    title="Interactive Renewable Energy Trends (Unit: Trillion Btu)",
+    labels={"Value": "Energy (Trillion Btu)", "Year": "Year", "Source": "Energy Source"},
+    template="plotly_white"
+)
+
+fig.update_layout(title_font=dict(size=18), legend_title_text="Energy Source")
+fig.write_html(os.path.join(output_dir, "interactive_trends.html"))
+print("✅ Added: interactive_trends.html")
+
 print("✅ Updated stacked area chart saved with cleaner legend titles.")
 
 print("✅ All visuals successfully generated in /output/")

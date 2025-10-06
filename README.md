@@ -63,7 +63,20 @@ This project analyzes renewable energy consumption across sources including **wi
 ![Stacked Renewables](output/stacked_renewables.png)
 
 ---
+## 🌐 Interactive Dashboard (Flask Web App)
 
+This project includes a **Flask-based dashboard** that visualizes all results in a clean, modern interface.
+
+### Features:
+- Interactive **Plotly** chart with hover and zoom controls  
+- KPI cards showing **latest year**, **total energy**, and **growth rate**  
+- Auto-generated visuals including heatmaps, pie charts, and stacked area charts  
+- Built-in **data summaries** for year-over-year performance
+
+To run locally:
+```bash
+python app.py
+---
 ## 🧩 Key Insights
 
 | Observation | Interpretation |
@@ -92,6 +105,16 @@ This project analyzes renewable energy consumption across sources including **wi
 
 ---
 
+## 🌱 Project Impact
+
+This analysis demonstrates how U.S. renewable energy has grown into a key part of the national energy portfolio.
+
+- Highlights the **rise of wind and solar** as primary drivers of growth  
+- Provides insights for **policy evaluation** and **energy investment forecasting**  
+- Acts as a **template** for data science projects combining energy analytics, visualization, and web deployment  
+- Integrates both **Python (data analysis)** and **Java (automation)** for a full-stack approach
+
+---
 ## 🚀 Next Steps
 
 - 🔍 **Integrate with Live EIA API** for automated data refresh and trend updates.  
