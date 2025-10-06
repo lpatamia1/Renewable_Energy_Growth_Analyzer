@@ -76,6 +76,7 @@ This project includes a **Flask-based dashboard** that visualizes all results in
 To run locally:
 ```bash
 python app.py
+```
 ---
 ## 🧩 Key Insights
 
