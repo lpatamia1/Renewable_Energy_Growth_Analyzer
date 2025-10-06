@@ -175,3 +175,45 @@ print("✅ Added: interactive_trends.html")
 print("✅ Updated stacked area chart saved with cleaner legend titles.")
 
 print("✅ All visuals successfully generated in /output/")
+
+# === 6️⃣ Forecast: Renewable Energy Projection ===
+from sklearn.linear_model import LinearRegression
+import numpy as np
+
+# Aggregate total renewable energy by year
+df_forecast = (
+    df_long.groupby("Year")["Value"]
+    .sum()
+    .reset_index()
+    .sort_values("Year")
+)
+
+X = df_forecast["Year"].values.reshape(-1, 1)
+y = df_forecast["Value"].values
+
+# Fit linear regression
+model = LinearRegression()
+model.fit(X, y)
+
+# Predict next 5 years
+future_years = np.arange(df_forecast["Year"].max() + 1, df_forecast["Year"].max() + 6).reshape(-1, 1)
+future_preds = model.predict(future_years)
+
+# Combine past + future for chart
+forecast_df = pd.DataFrame({
+    "Year": np.concatenate([df_forecast["Year"], future_years.flatten()]),
+    "Value": np.concatenate([y, future_preds]),
+    "Type": ["Historical"] * len(y) + ["Forecast"] * len(future_preds)
+})
+
+# Plot
+plt.figure(figsize=(10, 6))
+sns.lineplot(data=forecast_df, x="Year", y="Value", hue="Type", palette={"Historical": "tab:blue", "Forecast": "tab:orange"}, linewidth=2.5)
+plt.title("Forecast of Total Renewable Energy (Next 5 Years)\nBased on Linear Regression", fontsize=13, weight="bold")
+plt.xlabel("Year")
+plt.ylabel("Energy (Trillion Btu)")
+plt.tight_layout()
+plt.savefig(os.path.join(output_dir, "forecast_trend.png"))
+plt.close()
+
+print("✅ Added: forecast_trend.png")

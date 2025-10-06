@@ -1,15 +1,50 @@
+from flask import Flask, render_template, send_from_directory
+import os
+import pandas as pd
+import numpy as np
+
+app = Flask(__name__)
+
 @app.route('/')
 def index():
-    summary_path = os.path.join('output', 'energy_long.csv')
-    df = pd.read_csv(summary_path)
-    latest_year = df['Year'].max()
-    top_sources = df[df['Year'] == latest_year].groupby('Source')['Value'].sum().sort_values(ascending=False)
+    # Load processed data
+    csv_path = os.path.join('output', 'energy_long.csv')
+    if not os.path.exists(csv_path):
+        return "⚠️ Data file not found. Please run analyze_energy.py first."
 
-    # KPI Metrics
-    total_latest = df[df['Year'] == latest_year]['Value'].sum()
-    prev_year = latest_year - 1
-    total_prev = df[df['Year'] == prev_year]['Value'].sum()
-    growth_rate = ((total_latest - total_prev) / total_prev * 100) if total_prev > 0 else 0
+    df = pd.read_csv(csv_path)
+
+    # Ensure expected columns
+    for col in ["Year", "Source", "Value"]:
+        if col not in df.columns:
+            return f"⚠️ Missing column '{col}' in output/energy_long.csv"
+
+    latest_year = df['Year'].max()
+
+    # Summarize energy by source for latest year
+    top_sources = (
+        df[df['Year'] == latest_year]
+        .groupby('Source', as_index=True)['Value']
+        .sum()
+        .sort_values(ascending=False)
+        .head(8)
+    )
+
+    # Derived stats
+    total_latest = float(df[df['Year'] == latest_year]['Value'].sum())
+
+    # Average of per-source YoY growth, across sources
+    growth_series = df.sort_values(["Source", "Year"]).groupby('Source')['Value'].pct_change()
+    avg_growth = float(growth_series.mean(skipna=True) * 100)
+    if np.isnan(avg_growth):
+        avg_growth = 0.0  # fallback if not computable
+
+    insights = [
+        "Solar and wind energy continue to lead renewable growth.",
+        "Hydropower remains stable due to infrastructure limits.",
+        "Biomass and biofuels show steady expansion.",
+        "U.S. renewables have roughly doubled since the early 2000s."
+    ]
 
     return render_template(
         'index.html',
@@ -18,11 +53,19 @@ def index():
             'avg_growth_by_source.png',
             'energy_mix_pie.png',
             'correlation_heatmap.png',
-            'stacked_renewables.png'
+            'stacked_renewables.png',
+            'forecast_trend.png'
         ],
-        interactive_chart='interactive_trends.html',
-        latest_year=latest_year,
+        latest_year=int(latest_year),
         top_sources=top_sources.to_dict(),
         total_latest=total_latest,
-        growth_rate=growth_rate
+        growth_rate=avg_growth,   # <<< pass as growth_rate (template uses this)
+        insights=insights
     )
+
+@app.route('/output/<path:filename>')
+def serve_output(filename):
+    return send_from_directory('output', filename)
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5000)
