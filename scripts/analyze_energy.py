@@ -63,12 +63,13 @@ print("✅ Cleaned data saved → output/energy_long.csv")
 # === 4️⃣ Visualizations ===
 
 ## (a) Trend line
+df_long["Source"] = df_long["Source"].str.replace(r"\s*\(Trillion Btu\)", "", regex=True)
 plt.figure(figsize=(10, 6))
 sns.lineplot(data=df_long, x="Year", y="Value", hue="Source", linewidth=2)
 plt.title("Renewable Energy Trends by Source (Trillion Btu)")
 plt.xlabel("Year")
 plt.ylabel("Energy (Trillion Btu)")
-plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left")
+plt.legend(bbox_to_anchor=(1.05, 1), title="Energy Source", loc="upper left")
 plt.tight_layout()
 plt.savefig(os.path.join(output_dir, "renewable_trends.png"))
 plt.close()
@@ -79,7 +80,7 @@ avg_growth = df_long.groupby("Source")["Growth (%)"].mean().dropna().sort_values
 
 plt.figure(figsize=(8, 6))
 sns.barplot(x=avg_growth.values, y=avg_growth.index, palette="crest")
-plt.title("Average Annual Growth Rate by Energy Source (%)")
+plt.title("Average Annual Growth Rate by Energy Source (Unit: %)", fontsize = 12)
 plt.xlabel("Average Growth Rate (%)")
 plt.ylabel("")
 plt.tight_layout()
@@ -88,34 +89,72 @@ plt.close()
 
 ## (c) Pie chart for latest year
 latest_year = df_long["Year"].max()
-mix = df_long[df_long["Year"] == latest_year].groupby("Source")["Value"].sum().sort_values(ascending=False)
+mix = (
+    df_long[df_long["Year"] == latest_year]
+    .groupby("Source")["Value"]
+    .sum()
+    .sort_values(ascending=False)
+)
 
 plt.figure(figsize=(8, 8))
-plt.pie(mix, labels=mix.index, autopct="%1.1f%%", startangle=90, colors=sns.color_palette("pastel"))
-plt.title(f"Renewable Energy Mix by Source ({latest_year})")
+wedges, texts, autotexts = plt.pie(
+    mix,
+    labels=None,  # remove text labels from the pie
+    autopct="%1.1f%%",
+    startangle=90,
+    colors=sns.color_palette("pastel"),
+)
+
+# Add a clear, concise title
+plt.title(
+    f"Renewable Energy Mix by Source – {latest_year}\n(Unit: Trillion Btu)",
+    fontsize=13,
+    weight="bold"
+)
+
+# Add a legend (key) to the right
+plt.legend(
+    mix.index,
+    title="Energy Source",
+    loc="center left",
+    bbox_to_anchor=(1, 0.5),
+    fontsize=9,
+)
+
 plt.tight_layout()
-plt.savefig(os.path.join(output_dir, "energy_mix_pie.png"))
+plt.savefig(os.path.join(output_dir, "energy_mix_pie.png"), bbox_inches="tight")
 plt.close()
 
-## (d) Correlation heatmap
-numeric_df = df.select_dtypes("number").drop(columns=["Year"], errors="ignore")
-if not numeric_df.empty:
-    corr = numeric_df.corr()
-    plt.figure(figsize=(8, 6))
-    sns.heatmap(corr, annot=True, cmap="coolwarm", fmt=".2f", linewidths=0.5)
-    plt.title("Correlation Between Renewable Energy Sources")
-    plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, "correlation_heatmap.png"))
-    plt.close()
 
-## (e) Stacked area chart
-df_area = df.set_index("Year").select_dtypes("number")
-df_area.plot(kind="area", stacked=True, figsize=(10, 6), alpha=0.85, colormap="Set2")
-plt.title("Stacked Area Chart – Renewable Energy Consumption by Source")
+## (d) Correlation heatmap
+numeric_cols = df.select_dtypes(include="number").drop(columns=["Year"], errors="ignore")
+numeric_cols = numeric_cols.rename(columns=lambda c: c.replace(" (Trillion Btu)", ""))
+
+corr = numeric_cols.corr()
+plt.figure(figsize=(8, 6))
+sns.heatmap(corr, annot=True, cmap="coolwarm", fmt=".2f", linewidths=0.5)
+plt.title("Correlation Between Renewable Energy Sources\n(Unit: Trillion Btu)", fontsize=13, weight="bold")
+plt.tight_layout()
+plt.savefig(os.path.join(output_dir, "correlation_heatmap.png"))
+plt.close()
+
+## (e) Stacked Area Chart: Total Renewable Energy Consumption ---
+df_area = df.set_index("Year").select_dtypes(include="number")
+
+# Clean column names (remove "(Trillion Btu)")
+cleaned_cols = [col.replace(" (Trillion Btu)", "") for col in df_area.columns]
+df_area.columns = cleaned_cols
+
+plt.figure(figsize=(10, 6))
+df_area.plot(kind="area", stacked=True, alpha=0.85, colormap="Set2")
+plt.title("Stacked Area Chart – Renewable Energy Consumption by Source\n(Unit: Trillion Btu)", fontsize=12)
 plt.ylabel("Trillion Btu")
 plt.xlabel("Year")
+plt.legend(title="Energy Source", fontsize=8, bbox_to_anchor=(1.05, 1), loc="upper left")
 plt.tight_layout()
 plt.savefig(os.path.join(output_dir, "stacked_renewables.png"))
 plt.close()
+
+print("✅ Updated stacked area chart saved with cleaner legend titles.")
 
 print("✅ All visuals successfully generated in /output/")
