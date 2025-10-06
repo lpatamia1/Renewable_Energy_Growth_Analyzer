@@ -4,7 +4,7 @@ import seaborn as sns
 import os
 
 # === Setup ===
-input_path = "data/Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx"
+input_path = "data/Table_10.1_cleaned.xlsx"
 output_dir = "output"
 os.makedirs(output_dir, exist_ok=True)
 
